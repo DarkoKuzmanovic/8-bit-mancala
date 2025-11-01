@@ -6,8 +6,10 @@ import { GameState, Player } from '../types';
 // since it's included from a <script> tag in index.html.
 declare const io: any;
 
-// NOTE: This should be the URL of your Socket.IO server.
-const SERVER_URL = 'http://localhost:3002';
+// NOTE: Auto-detect server URL based on environment
+const SERVER_URL = import.meta.env.DEV
+  ? 'http://localhost:3002'
+  : window.location.origin;
 
 export const useSocketGame = () => {
   const socketRef = useRef<Socket | null>(null);
@@ -22,12 +24,19 @@ export const useSocketGame = () => {
 
   useEffect(() => {
     console.log('Initializing Socket.IO connection to:', SERVER_URL);
-    const socket: Socket = io(SERVER_URL, {
+    const socketOptions: any = {
       reconnection: true,
       reconnectionAttempts: 3,
       reconnectionDelay: 1000,
       timeout: 5000,
-    });
+    };
+
+    // In production, use the custom socket.io path
+    if (!import.meta.env.DEV) {
+      socketOptions.path = '/8-bit-mancala/socket.io';
+    }
+
+    const socket: Socket = io(SERVER_URL, socketOptions);
     socketRef.current = socket;
 
     socket.on('connect', () => {

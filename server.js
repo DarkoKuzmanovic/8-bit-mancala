@@ -1,7 +1,26 @@
+import 'dotenv/config';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const PORT = 3002; // Use a different port than the dev server
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const PORT = process.env.PORT || 3002;
+const BASE_PATH = normalizeBasePath(process.env.BASE_PATH || '');
+const STATIC_DIR = path.join(__dirname, 'dist');
+const SOCKET_PATH = `${BASE_PATH || ''}/socket.io`.replace(/\/{2,}/g, '/');
+
+function normalizeBasePath(value) {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === '/') {
+    return '';
+  }
+  const withoutExtraSlashes = trimmed.replace(/\/+/g, '/').replace(/^\/|\/$/g, '');
+  return `/${withoutExtraSlashes}`;
+}
 
 // Game constants
 const INITIAL_STONES_PER_PIT = 4;
@@ -130,14 +149,37 @@ function makeMove(gameState, pitIndex, playerNumber) {
   return { board, currentPlayer, gameOver, winner, message };
 }
 
-// Create HTTP server
-const httpServer = createServer();
+// Create Express app and HTTP server
+const app = express();
+const httpServer = createServer(app);
 const io = new Server(httpServer, {
+  path: SOCKET_PATH,
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000", "http://127.0.0.1:3001"],
+    origin: ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000", "http://127.0.0.1:3001", "https://app.quz.ma"],
     methods: ["GET", "POST"]
   }
 });
+
+// Serve static files
+if (BASE_PATH) {
+  app.use(BASE_PATH, express.static(STATIC_DIR));
+  app.get('/', (_req, res) => {
+    res.redirect(BASE_PATH);
+  });
+} else {
+  app.use(express.static(STATIC_DIR));
+}
+
+// Health check endpoints
+app.get('/health', (_req, res) => {
+  res.json({ ok: true });
+});
+
+if (BASE_PATH) {
+  app.get(`${BASE_PATH}/health`, (_req, res) => {
+    res.json({ ok: true });
+  });
+}
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
@@ -290,6 +332,7 @@ io.on('connection', (socket) => {
 
 // Start server
 httpServer.listen(PORT, () => {
-  console.log(`🎮 8-Bit Mancala server running on port ${PORT}`);
-  console.log(`🔗 Connect your game to http://localhost:${PORT}`);
+  const pathInfo = BASE_PATH || '/';
+  console.log(`🎮 8-Bit Mancala server running on http://localhost:${PORT}${pathInfo}`);
+  console.log(`🔗 Socket.IO path set to ${SOCKET_PATH}`);
 });

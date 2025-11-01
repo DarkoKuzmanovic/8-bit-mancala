@@ -7,7 +7,11 @@
       "Bash(netstat:*)",
       "Bash(findstr:*)",
       "Bash(taskkill:*)",
-      "Bash(npm run server:*)"
+      "Bash(npm run server:*)",
+      "Bash(git fetch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: add production deployment configuration\n\n- Add Express integration for production serving\n- Configure Socket.IO to work behind reverse proxy with custom path\n- Add environment variable support via dotenv for PORT and BASE_PATH\n- Update client Socket.IO connection to auto-detect dev vs production\n- Include deployment helper scripts (start.sh, update.sh)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push)"
     ],
     "deny": [],
     "ask": []
