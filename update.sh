@@ -12,7 +12,7 @@ APP_DIR="$(pwd)"
 # Create dynamic log file based on directory name to avoid conflicts
 DIR_NAME=$(basename "$APP_DIR")
 LOG_FILE="/tmp/8-bit-mancala-${DIR_NAME}.log"
-HEALTH_CHECK_URL_LOCAL="http://localhost:3002"
+HEALTH_CHECK_URL_LOCAL="http://localhost:3002/8-bit-mancala/health"
 HEALTH_CHECK_URL_PUBLIC="https://app.quz.ma/8-bit-mancala"
 PM2_APP_NAME="8-bit-mancala"
 
