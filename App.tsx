@@ -25,21 +25,23 @@ const App: React.FC = () => {
 
   const handleStartLocalGame = () => {
     playSound('click');
+    playSound('gameStart');
     setGameMode('local');
   };
 
   const handleStartOnlineGame = () => {
     playSound('click');
+    playSound('gameStart');
     setGameMode('online');
   };
 
   const handleSoundSettings = () => {
-    playSound('click');
+    playSound('menuNavigate');
     setShowSoundSettings(true);
   };
 
   const handleGoHome = () => {
-    playSound('click');
+    playSound('menuNavigate');
     setGameMode('menu');
     localResetGame();
   };

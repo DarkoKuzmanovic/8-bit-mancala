@@ -11,9 +11,13 @@ const SOUND_LABELS: Record<SoundType, string> = {
   pickup: '🎯 Pickup',
   drop: '⬇️ Drop',
   capture: '⚡ Capture',
+  captureBonus: '✨ Bonus Capture',
   win: '🏆 Victory',
   turn: '🔄 Turn Change',
   click: '🖱️ Click',
+  menuNavigate: '📱 Menu Navigate',
+  gameStart: '🎮 Game Start',
+  invalidMove: '❌ Invalid Move',
 };
 
 const SoundSettingsPanel: React.FC<SoundSettingsPanelProps> = ({ onClose, isOpen }) => {

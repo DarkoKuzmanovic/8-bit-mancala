@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export type SoundType = 'pickup' | 'drop' | 'capture' | 'win' | 'turn' | 'click';
+export type SoundType = 'pickup' | 'drop' | 'capture' | 'win' | 'turn' | 'click' | 'menuNavigate' | 'gameStart' | 'invalidMove' | 'captureBonus';
 
 export interface SoundSettings {
   masterVolume: number;
@@ -19,6 +19,10 @@ const DEFAULT_SETTINGS: SoundSettings = {
     win: 0.9,
     turn: 0.6,
     click: 0.5,
+    menuNavigate: 0.4,
+    gameStart: 0.7,
+    invalidMove: 0.6,
+    captureBonus: 1.0,
   },
   enabledSounds: {
     pickup: true,
@@ -27,6 +31,10 @@ const DEFAULT_SETTINGS: SoundSettings = {
     win: true,
     turn: true,
     click: true,
+    menuNavigate: true,
+    gameStart: true,
+    invalidMove: true,
+    captureBonus: true,
   },
 };
 

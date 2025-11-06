@@ -36,9 +36,11 @@ export const useGameLogic = () => {
     // Validate move
     const isPlayerOne = currentPlayer === Player.One;
     if ((isPlayerOne && !PLAYER_ONE_PITS.includes(pitIndex)) || (!isPlayerOne && !PLAYER_TWO_PITS.includes(pitIndex))) {
+      playSound('invalidMove', pitIndex);
       return; // Not player's pit
     }
     if (board[pitIndex] === 0) {
+      playSound('invalidMove', pitIndex);
       return; // Empty pit
     }
 
@@ -92,7 +94,14 @@ export const useGameLogic = () => {
         board[lastStonePit] = 0;
         board[ownStore] += capturedStones;
         message = `PLAYER ${currentPlayer} CAPTURED ${capturedStones} STONES!`;
-        playSound('capture');
+
+        // Play capture bonus sound for big captures
+        if (capturedStones >= 8) {
+          playSound('captureBonus');
+        } else {
+          playSound('capture');
+        }
+
         setCaptureEffect(true);
         setTimeout(() => setCaptureEffect(false), 500); // Show capture effect for 500ms
         currentPlayer = isPlayerOne ? Player.Two : Player.One; // Switch turn after capture
