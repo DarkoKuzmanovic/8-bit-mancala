@@ -32,12 +32,12 @@ const Stone: React.FC<{ index: number }> = ({ index }) => {
   const color = colors[index % colors.length];
   const position = positions[index % positions.length];
 
-  return <div className={`absolute w-2 h-2 md:w-3 md:h-3 rounded-full ${color} border border-stone-900/70 ${position}`} />;
+  return <div className={`absolute w-1.5 h-1.5 sm:w-2 sm:h-2 md:w-2.5 md:h-2.5 lg:w-3 lg:h-3 rounded-full ${color} border border-stone-900/70 ${position}`} />;
 };
 
 const Pit: React.FC<PitProps> = ({ stones, onClick, isClickable, isAnimating = false, isCapturing = false, isHighlighted = false }) => {
   const pitClasses = [
-    "pit-frame w-16 h-16 md:w-20 md:h-20 rounded-full m-1 md:m-2",
+    "pit-frame w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-full m-0.5 sm:m-1 md:m-2",
     "bg-amber-950/70 border-4 border-amber-900/80 flex items-center justify-center",
     "relative z-50 transition-all duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-amber-900",
     isClickable
@@ -59,7 +59,7 @@ const Pit: React.FC<PitProps> = ({ stones, onClick, isClickable, isAnimating = f
     >
       <div className="pointer-events-none absolute inset-1 rounded-full border border-amber-900/60 opacity-60 shadow-inner shadow-black/40"></div>
       <div className="pointer-events-none absolute inset-1 rounded-full bg-gradient-to-b from-amber-100/25 via-transparent to-transparent mix-blend-screen"></div>
-      <span className="relative text-3xl text-white font-bold pointer-events-none z-[60]" style={{ textShadow: "2px 2px #000" }}>
+      <span className="relative text-xl sm:text-2xl md:text-3xl text-white font-bold pointer-events-none z-[60]" style={{ textShadow: "2px 2px #000" }}>
         {stones}
       </span>
       <div className="absolute inset-0 w-full h-full pointer-events-none">

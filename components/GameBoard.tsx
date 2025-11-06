@@ -21,18 +21,70 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameState, playerNumber, animatin
   const isMyTurn = gameState.currentPlayer === playerNumber;
 
   return (
-    <div className="w-full max-w-4xl pixelated-border board-surface p-4 md:p-6">
+    <div className="w-full max-w-full sm:max-w-xl md:max-w-2xl lg:max-w-4xl pixelated-border board-surface p-3 sm:p-4 md:p-6">
       {gameState.gameOver && (
         <GameOverModal winner={gameState.winner} onPlayAgain={onPlayAgain} onGoHome={onGoHome} />
       )}
 
-      <div className="mb-4 flex items-center justify-center">
-        <div className="status-banner text-[10px] md:text-xs text-amber-50 tracking-tight uppercase">
+      <div className="mb-3 sm:mb-4 flex items-center justify-center">
+        <div className="status-banner text-[9px] sm:text-[10px] md:text-xs text-amber-50 tracking-tight uppercase">
           {gameState.message}
         </div>
       </div>
 
-      <div className="flex justify-between items-center">
+      {/* Mobile Portrait Layout */}
+      <div className="block sm:hidden">
+        {/* Player 2 Store */}
+        <div className="flex justify-center mb-3">
+          <Store stones={gameState.board[PLAYER_TWO_STORE]} player={Player.Two} isActive={gameState.currentPlayer === Player.Two} />
+        </div>
+
+        {/* Player 2 Pits */}
+        <div className="flex justify-center mb-3">
+          <div className="flex gap-1">
+            {PLAYER_TWO_PITS.slice().reverse().map((pitIndex) => {
+              const isClickable = isMyTurn && playerNumber === Player.Two && gameState.board[pitIndex] > 0;
+              return (
+                <Pit
+                  key={pitIndex}
+                  stones={gameState.board[pitIndex]}
+                  onClick={() => onMakeMove(pitIndex)}
+                  isClickable={isClickable}
+                  isAnimating={animatingPits.has(pitIndex)}
+                  isHighlighted={highlightedPit === pitIndex}
+                />
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Player 1 Pits */}
+        <div className="flex justify-center mb-3">
+          <div className="flex gap-1">
+            {PLAYER_ONE_PITS.map((pitIndex) => {
+              const isClickable = isMyTurn && playerNumber === Player.One && gameState.board[pitIndex] > 0;
+              return (
+                <Pit
+                  key={pitIndex}
+                  stones={gameState.board[pitIndex]}
+                  onClick={() => onMakeMove(pitIndex)}
+                  isClickable={isClickable}
+                  isAnimating={animatingPits.has(pitIndex)}
+                  isHighlighted={highlightedPit === pitIndex}
+                />
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Player 1 Store */}
+        <div className="flex justify-center mb-3">
+          <Store stones={gameState.board[PLAYER_ONE_STORE]} player={Player.One} isActive={gameState.currentPlayer === Player.One} />
+        </div>
+      </div>
+
+      {/* Desktop/Tablet Layout */}
+      <div className="hidden sm:flex justify-between items-center">
         <Store stones={gameState.board[PLAYER_TWO_STORE]} player={Player.Two} isActive={gameState.currentPlayer === Player.Two} />
 
         <div className="flex-grow flex flex-col justify-between mx-2 md:mx-4">
@@ -74,7 +126,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameState, playerNumber, animatin
         <Store stones={gameState.board[PLAYER_ONE_STORE]} player={Player.One} isActive={gameState.currentPlayer === Player.One} />
       </div>
 
-      <div className="mt-4 flex justify-between">
+      {/* Player Indicators - always horizontal */}
+      <div className="mt-3 sm:mt-4 flex justify-between">
         <PlayerIndicator player={Player.Two} isActive={gameState.currentPlayer === Player.Two} isYou={playerNumber === Player.Two} />
         <PlayerIndicator player={Player.One} isActive={gameState.currentPlayer === Player.One} isYou={playerNumber === Player.One} />
       </div>
