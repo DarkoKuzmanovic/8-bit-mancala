@@ -1,10 +1,10 @@
 
 import { useCallback, useRef } from 'react';
-
-type SoundType = 'pickup' | 'drop' | 'capture' | 'win' | 'turn' | 'click';
+import { useSoundSettings, type SoundType } from './useSoundSettings';
 
 export const useSound = () => {
     const audioCtxRef = useRef<AudioContext | null>(null);
+    const { getEffectiveVolume } = useSoundSettings();
 
     const getAudioContext = useCallback(() => {
         if (!audioCtxRef.current) {
@@ -15,17 +15,20 @@ export const useSound = () => {
 
     const playSound = useCallback((type: SoundType) => {
         try {
+            const volume = getEffectiveVolume(type);
+            if (volume === 0) return; // Skip if muted or disabled
+
             const audioCtx = getAudioContext();
             const now = audioCtx.currentTime;
 
             const gainNode = audioCtx.createGain();
             gainNode.connect(audioCtx.destination);
-            
+
             let oscillatorType: OscillatorType = 'square';
-            
+
             switch(type) {
                 case 'pickup':
-                    gainNode.gain.setValueAtTime(0.1, now);
+                    gainNode.gain.setValueAtTime(0.1 * volume, now);
                     const osc1 = audioCtx.createOscillator();
                     osc1.type = 'triangle';
                     osc1.frequency.setValueAtTime(200, now);
@@ -36,7 +39,7 @@ export const useSound = () => {
                     break;
 
                 case 'drop':
-                    gainNode.gain.setValueAtTime(0.08, now);
+                    gainNode.gain.setValueAtTime(0.08 * volume, now);
                     gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
                     const oscDrop = audioCtx.createOscillator();
                     oscDrop.type = 'sine';
@@ -45,9 +48,9 @@ export const useSound = () => {
                     oscDrop.start(now);
                     oscDrop.stop(now + 0.2);
                     break;
-                
+
                 case 'capture':
-                     gainNode.gain.setValueAtTime(0.2, now);
+                     gainNode.gain.setValueAtTime(0.2 * volume, now);
                     ['G5', 'E6', 'C6'].forEach((note, i) => {
                         const freq = { G5: 783.99, E6: 1318.51, C6: 1046.50 }[note]!;
                         const osc = audioCtx.createOscillator();
@@ -58,9 +61,9 @@ export const useSound = () => {
                         osc.stop(now + i * 0.07 + 0.05);
                     });
                     break;
-                
+
                 case 'win':
-                    gainNode.gain.setValueAtTime(0.2, now);
+                    gainNode.gain.setValueAtTime(0.2 * volume, now);
                     ['C5', 'E5', 'G5', 'C6'].forEach((note, i) => {
                          const freq = { C5: 523.25, E5: 659.25, G5: 783.99, C6: 1046.50}[note]!;
                          const osc = audioCtx.createOscillator();
@@ -71,9 +74,9 @@ export const useSound = () => {
                          osc.stop(now + i * 0.1 + 0.1);
                     });
                     break;
-                
+
                 case 'turn':
-                    gainNode.gain.setValueAtTime(0.1, now);
+                    gainNode.gain.setValueAtTime(0.1 * volume, now);
                     gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
                     const oscTurn = audioCtx.createOscillator();
                     oscTurn.type = 'sawtooth';
@@ -82,9 +85,9 @@ export const useSound = () => {
                     oscTurn.start(now);
                     oscTurn.stop(now + 0.15);
                     break;
-                
+
                 case 'click':
-                     gainNode.gain.setValueAtTime(0.15, now);
+                     gainNode.gain.setValueAtTime(0.15 * volume, now);
                      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
                      const oscClick = audioCtx.createOscillator();
                      oscClick.type = 'square';
@@ -97,7 +100,7 @@ export const useSound = () => {
         } catch (error) {
             console.error("Could not play sound:", error);
         }
-    }, [getAudioContext]);
+    }, [getAudioContext, getEffectiveVolume]);
 
     return playSound;
 };

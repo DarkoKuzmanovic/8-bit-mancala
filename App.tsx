@@ -1,15 +1,18 @@
 import React, { useState } from "react";
 import StartScreen from "./components/StartScreen";
 import GameBoard from "./components/GameBoard";
+import SoundSettingsPanel from "./components/SoundSettingsPanel";
 import { useGameLogic } from "./hooks/useGameLogic";
 import { useSocketGame } from "./hooks/useSocketGame";
 import { useSound } from "./hooks/useSound";
+import { useSoundSettings } from "./hooks/useSoundSettings";
 import { Player } from "./types";
 
 type GameMode = 'menu' | 'local' | 'online';
 
 const App: React.FC = () => {
   const [gameMode, setGameMode] = useState<GameMode>('menu');
+  const [showSoundSettings, setShowSoundSettings] = useState(false);
 
   // Local game state
   const { gameState: localGameState, sowSeeds: localSowSeeds, resetGame: localResetGame, animatingPits, highlightedPit, captureEffect } = useGameLogic();
@@ -18,6 +21,7 @@ const App: React.FC = () => {
   const { gameState: onlineGameState, roomCode, playerNumber, playerCount, message, error, isConnected, connectionError, createRoom, joinRoom, makeMove, resetGame: onlineResetGame } = useSocketGame();
 
   const playSound = useSound();
+  const { settings: soundSettings, toggleMute } = useSoundSettings();
 
   const handleStartLocalGame = () => {
     playSound('click');
@@ -27,6 +31,11 @@ const App: React.FC = () => {
   const handleStartOnlineGame = () => {
     playSound('click');
     setGameMode('online');
+  };
+
+  const handleSoundSettings = () => {
+    playSound('click');
+    setShowSoundSettings(true);
   };
 
   const handleGoHome = () => {
@@ -78,6 +87,12 @@ const App: React.FC = () => {
             >
               🌐 ONLINE GAME
             </button>
+            <button
+              onClick={handleSoundSettings}
+              className="w-full px-6 py-3 text-lg bg-purple-600 text-amber-50 hover:bg-purple-500 active:bg-purple-700 transform hover:-translate-y-[2px] active:translate-y-[1px] transition-transform font-bold border-4 border-purple-800 pixel-shadow"
+            >
+              🔊 SOUND SETTINGS
+            </button>
           </div>
 
           <div className="space-y-2 text-left">
@@ -114,6 +129,12 @@ const App: React.FC = () => {
           onPlayAgain={handlePlayAgain}
         />
       )}
+
+      {/* Sound Settings Modal */}
+      <SoundSettingsPanel
+        isOpen={showSoundSettings}
+        onClose={() => setShowSoundSettings(false)}
+      />
     </div>
   );
 };
