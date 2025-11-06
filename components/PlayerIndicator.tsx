@@ -9,22 +9,42 @@ interface PlayerIndicatorProps {
 
 const PlayerIndicator: React.FC<PlayerIndicatorProps> = ({ player, isActive, isYou }) => {
   const color = player === Player.One ? 'text-orange-400' : 'text-amber-400';
-  const visibility = isActive ? 'opacity-100' : 'opacity-30';
   const panelClasses = [
-    'status-banner pixel-shadow flex flex-col items-center gap-1 min-w-[9rem] text-[10px] md:text-xs tracking-tight uppercase',
-    visibility,
-    isActive ? 'scale-105 turn-indicator-animate' : 'scale-95',
-    'transition-transform duration-300 ease-out',
+    'status-banner pixel-shadow flex flex-col items-center gap-2 min-w-[10rem] text-[10px] md:text-xs tracking-tight uppercase player-indicator',
+    isActive ? 'active' : 'inactive',
+    !isActive && 'waiting',
   ]
     .filter((cls): cls is string => Boolean(cls))
     .join(' ');
 
+  const turnTextClasses = [
+    'text-[11px] md:text-sm turn-text',
+    isActive ? 'active' : ''
+  ].filter(Boolean).join(' ');
+
   return (
-    <div className={panelClasses}>
-      <span className={`text-base md:text-lg ${color}`}>Player {player === Player.One ? '1' : '2'}</span>
-      <div className="flex items-center gap-2 text-amber-100">
-        {isActive ? <span className="animate-pulse text-[11px] md:text-sm text-amber-50">Your Turn</span> : <span className="text-[11px] md:text-sm opacity-70">Waiting</span>}
-        {isYou && <span className="text-amber-200/80 text-[9px] md:text-xs">You</span>}
+    <div className={panelClasses} style={{ color: isActive ? color : undefined }}>
+      <div className="flex items-center gap-2">
+        <span className={`text-base md:text-lg player-number ${color}`}>Player {player === Player.One ? '1' : '2'}</span>
+        {isYou && <span className="you-badge">You</span>}
+      </div>
+      <div className="flex flex-col items-center gap-1">
+        {isActive ? (
+          <>
+            <span className={`${turnTextClasses} text-amber-50 font-semibold`}>
+              Your Turn
+            </span>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }}></div>
+              <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" style={{ animationDelay: '0.6s' }}></div>
+            </div>
+          </>
+        ) : (
+          <span className="text-[11px] md:text-sm opacity-70">
+            Waiting
+          </span>
+        )}
       </div>
     </div>
   );

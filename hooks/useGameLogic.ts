@@ -13,6 +13,7 @@ const createInitialState = (): GameState => ({
 
 export const useGameLogic = () => {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
+  const [gameHistory, setGameHistory] = useState<GameState[]>([]);
   const [animatingPits, setAnimatingPits] = useState<Set<number>>(new Set());
   const [highlightedPit, setHighlightedPit] = useState<number | null>(null);
   const [captureEffect, setCaptureEffect] = useState(false);
@@ -20,13 +21,36 @@ export const useGameLogic = () => {
 
   const resetGame = useCallback(() => {
     setGameState(createInitialState());
+    setGameHistory([]);
     setAnimatingPits(new Set());
     setHighlightedPit(null);
     setCaptureEffect(false);
   }, []);
 
+  // Undo functionality
+  const undoMove = useCallback(() => {
+    if (gameHistory.length === 0) {
+      playSound('invalidMove');
+      return;
+    }
+
+    const previousState = gameHistory[gameHistory.length - 1];
+    setGameState(previousState);
+    setGameHistory(prev => prev.slice(0, -1));
+    setAnimatingPits(new Set());
+    setHighlightedPit(null);
+    setCaptureEffect(false);
+    playSound('click');
+  }, [gameHistory, playSound]);
+
+  // Check if undo is available
+  const canUndo = gameHistory.length > 0 && !gameState.gameOver;
+
   const sowSeeds = useCallback((pitIndex: number) => {
     if (gameState.gameOver) return;
+
+    // Save current state to history before making the move
+    setGameHistory(prev => [...prev, gameState]);
 
     // FIX: The original destructuring on line 26 was causing errors and also introduced a state mutation bug. Replaced with explicit copies of state properties to modify.
     let board = [...gameState.board];
@@ -37,10 +61,14 @@ export const useGameLogic = () => {
     const isPlayerOne = currentPlayer === Player.One;
     if ((isPlayerOne && !PLAYER_ONE_PITS.includes(pitIndex)) || (!isPlayerOne && !PLAYER_TWO_PITS.includes(pitIndex))) {
       playSound('invalidMove', pitIndex);
+      // Revert history for invalid move
+      setGameHistory(prev => prev.slice(0, -1));
       return; // Not player's pit
     }
     if (board[pitIndex] === 0) {
       playSound('invalidMove', pitIndex);
+      // Revert history for invalid move
+      setGameHistory(prev => prev.slice(0, -1));
       return; // Empty pit
     }
 
@@ -177,5 +205,5 @@ export const useGameLogic = () => {
 
   }, [gameState, playSound]);
 
-  return { gameState, sowSeeds, resetGame, animatingPits, highlightedPit, captureEffect };
+  return { gameState, sowSeeds, resetGame, undoMove, canUndo, animatingPits, highlightedPit, captureEffect };
 };

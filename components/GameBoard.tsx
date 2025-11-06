@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Pit from './Pit';
 import Store from './Store';
 import PlayerIndicator from './PlayerIndicator';
@@ -16,9 +16,11 @@ interface GameBoardProps {
     onMakeMove: (pitIndex: number) => void;
     onGoHome: () => void;
     onPlayAgain: () => void;
+    onUndoMove?: () => void;
+    canUndo?: boolean;
 }
 
-const GameBoard: React.FC<GameBoardProps> = ({ gameState, playerNumber, animatingPits, highlightedPit, onMakeMove, onGoHome, onPlayAgain }) => {
+const GameBoard: React.FC<GameBoardProps> = ({ gameState, playerNumber, animatingPits, highlightedPit, onMakeMove, onGoHome, onPlayAgain, onUndoMove, canUndo = false }) => {
 
   const isMyTurn = gameState.currentPlayer === playerNumber;
   const { settings: soundSettings, toggleMute } = useSoundSettings();
@@ -29,16 +31,52 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameState, playerNumber, animatin
     toggleMute();
   };
 
+  const handleUndoMove = () => {
+    if (onUndoMove && canUndo) {
+      onUndoMove();
+    }
+  };
+
+  // Keyboard shortcuts for undo
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl+Z for undo
+      if (event.ctrlKey && event.key.toLowerCase() === 'z') {
+        event.preventDefault();
+        handleUndoMove();
+      }
+      // Also support Ctrl+U for undo
+      if (event.ctrlKey && event.key.toLowerCase() === 'u') {
+        event.preventDefault();
+        handleUndoMove();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [canUndo, onUndoMove]);
+
   return (
     <div className="w-full max-w-full sm:max-w-xl md:max-w-2xl lg:max-w-4xl pixelated-border board-surface p-3 sm:p-4 md:p-6 relative">
       {gameState.gameOver && (
         <GameOverModal winner={gameState.winner} onPlayAgain={onPlayAgain} onGoHome={onGoHome} />
       )}
 
+      {/* Undo Button - Top Left (Local Games Only) */}
+      {onUndoMove && canUndo && (
+        <button
+          onClick={handleUndoMove}
+          className="absolute top-2 left-2 sm:top-3 sm:left-3 p-2 sm:p-2.5 bg-blue-600/80 hover:bg-blue-500/80 text-blue-100 border-2 border-blue-800/80 rounded-lg pixel-shadow transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Undo last move (Ctrl+Z)"
+        >
+          <span className="text-lg sm:text-xl">↶</span>
+        </button>
+      )}
+
       {/* Mute Button - Top Right */}
       <button
         onClick={handleMuteToggle}
-        className="absolute top-2 right-2 sm:top-3 sm:right-3 p-2 sm:p-2.5 bg-amber-800/80 hover:bg-amber-700/80 text-amber-100 border-2 border-amber-900/80 rounded-lg pixel-shadow transition-all duration-200 hover:scale-105 active:scale-95"
+        className="absolute top-2 right-2 sm:top-3 sm:right-3 p-2 sm:p-2.5 bg-amber-800/80 hover:bg-amber-700/80 text-amber-100 border-2 border-amber-900/80 rounded-lg pixel-shadow transition-all duration-200 hover:scale-105 active:scale-95 sound-toggle"
         title={soundSettings.isMuted ? "Unmute sounds" : "Mute sounds"}
       >
         <span className="text-lg sm:text-xl">

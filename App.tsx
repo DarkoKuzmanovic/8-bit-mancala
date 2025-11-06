@@ -1,11 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import StartScreen from "./components/StartScreen";
 import GameBoard from "./components/GameBoard";
 import SoundSettingsPanel from "./components/SoundSettingsPanel";
+import GameStats from "./components/GameStats";
+import AccessibilitySettingsPanel from "./components/AccessibilitySettingsPanel";
 import { useGameLogic } from "./hooks/useGameLogic";
 import { useSocketGame } from "./hooks/useSocketGame";
 import { useSound } from "./hooks/useSound";
 import { useSoundSettings } from "./hooks/useSoundSettings";
+import { useGameStats } from "./hooks/useGameStats";
+import { useAccessibilitySettings } from "./hooks/useAccessibilitySettings";
 import { Player } from "./types";
 
 type GameMode = 'menu' | 'local' | 'online';
@@ -13,15 +17,30 @@ type GameMode = 'menu' | 'local' | 'online';
 const App: React.FC = () => {
   const [gameMode, setGameMode] = useState<GameMode>('menu');
   const [showSoundSettings, setShowSoundSettings] = useState(false);
+  const [showStats, setShowStats] = useState(false);
+  const [showAccessibility, setShowAccessibility] = useState(false);
+
+  // Stats tracking
+  const { recordGame } = useGameStats();
+
+  // Accessibility settings (applied automatically)
+  useAccessibilitySettings();
 
   // Local game state
-  const { gameState: localGameState, sowSeeds: localSowSeeds, resetGame: localResetGame, animatingPits, highlightedPit, captureEffect } = useGameLogic();
+  const { gameState: localGameState, sowSeeds: localSowSeeds, resetGame: localResetGame, undoMove: localUndoMove, canUndo: localCanUndo, animatingPits, highlightedPit, captureEffect } = useGameLogic();
 
   // Online game state
   const { gameState: onlineGameState, roomCode, playerNumber, playerCount, message, error, isConnected, connectionError, createRoom, joinRoom, makeMove, resetGame: onlineResetGame } = useSocketGame();
 
   const playSound = useSound();
   const { settings: soundSettings, toggleMute } = useSoundSettings();
+
+  // Record game completion in stats (for local games only)
+  useEffect(() => {
+    if (gameMode === 'local' && localGameState?.gameOver && localGameState?.winner !== null) {
+      recordGame(localGameState.winner);
+    }
+  }, [gameMode, localGameState?.gameOver, localGameState?.winner, recordGame]);
 
   const handleStartLocalGame = () => {
     playSound('click');
@@ -38,6 +57,16 @@ const App: React.FC = () => {
   const handleSoundSettings = () => {
     playSound('menuNavigate');
     setShowSoundSettings(true);
+  };
+
+  const handleStats = () => {
+    playSound('menuNavigate');
+    setShowStats(true);
+  };
+
+  const handleAccessibility = () => {
+    playSound('menuNavigate');
+    setShowAccessibility(true);
   };
 
   const handleGoHome = () => {
@@ -79,21 +108,33 @@ const App: React.FC = () => {
           <div className="space-y-4">
             <button
               onClick={handleStartLocalGame}
-              className="w-full px-6 py-3 text-lg bg-amber-500 text-amber-950 hover:bg-amber-400 active:bg-amber-600 transform hover:-translate-y-[2px] active:translate-y-[1px] transition-transform font-bold border-4 border-amber-700 pixel-shadow"
+              className="w-full px-6 py-3 text-lg bg-amber-500 text-amber-950 transform font-bold border-4 border-amber-700 pixel-button pixel-shadow"
             >
               🎮 LOCAL GAME
             </button>
             <button
               onClick={handleStartOnlineGame}
-              className="w-full px-6 py-3 text-lg bg-orange-600 text-amber-50 hover:bg-orange-500 active:bg-orange-700 transform hover:-translate-y-[2px] active:translate-y-[1px] transition-transform font-bold border-4 border-orange-800 pixel-shadow"
+              className="w-full px-6 py-3 text-lg bg-orange-600 text-amber-50 transform font-bold border-4 border-orange-800 pixel-button pixel-shadow"
             >
               🌐 ONLINE GAME
             </button>
             <button
               onClick={handleSoundSettings}
-              className="w-full px-6 py-3 text-lg bg-purple-600 text-amber-50 hover:bg-purple-500 active:bg-purple-700 transform hover:-translate-y-[2px] active:translate-y-[1px] transition-transform font-bold border-4 border-purple-800 pixel-shadow"
+              className="w-full px-6 py-3 text-lg bg-purple-600 text-amber-50 transform font-bold border-4 border-purple-800 pixel-button pixel-shadow"
             >
               🔊 SOUND SETTINGS
+            </button>
+            <button
+              onClick={handleStats}
+              className="w-full px-6 py-3 text-lg bg-blue-600 text-amber-50 transform font-bold border-4 border-blue-800 pixel-button pixel-shadow"
+            >
+              📊 GAME STATS
+            </button>
+            <button
+              onClick={handleAccessibility}
+              className="w-full px-6 py-3 text-lg bg-indigo-600 text-amber-50 transform font-bold border-4 border-indigo-800 pixel-button pixel-shadow"
+            >
+              ♿ ACCESSIBILITY
             </button>
           </div>
 
@@ -129,6 +170,8 @@ const App: React.FC = () => {
           onMakeMove={onMakeMove}
           onGoHome={handleGoHome}
           onPlayAgain={handlePlayAgain}
+          onUndoMove={gameMode === 'local' ? localUndoMove : undefined}
+          canUndo={gameMode === 'local' ? localCanUndo : false}
         />
       )}
 
@@ -136,6 +179,18 @@ const App: React.FC = () => {
       <SoundSettingsPanel
         isOpen={showSoundSettings}
         onClose={() => setShowSoundSettings(false)}
+      />
+
+      {/* Game Stats Modal */}
+      <GameStats
+        isOpen={showStats}
+        onClose={() => setShowStats(false)}
+      />
+
+      {/* Accessibility Settings Modal */}
+      <AccessibilitySettingsPanel
+        isOpen={showAccessibility}
+        onClose={() => setShowAccessibility(false)}
       />
     </div>
   );
